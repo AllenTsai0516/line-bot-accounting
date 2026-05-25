@@ -46,9 +46,92 @@ async function handleEvent(event) {
 
   // --- 階段 1：處理圖文選單與精確指令 ---
   switch (userMessage) {
-    // 【圖文選單指令】
+    
+    // 🔥 【更新】這裡換成了超炫的 Flex Message 九宮格卡片
     case '隨手記一筆':
-      return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '📝 請輸入你要記的帳！\n格式：項目 金額（例如：午餐 150）' }] });
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [{
+          type: 'flex',
+          altText: '請選擇記帳分類',
+          contents: {
+            "type": "bubble",
+            "size": "kilo",
+            "header": {
+              "type": "box",
+              "layout": "vertical",
+              "contents": [
+                { "type": "text", "text": "📝 選擇記帳分類", "weight": "bold", "size": "xl", "color": "#F3B562" }
+              ]
+            },
+            "body": {
+              "type": "box",
+              "layout": "vertical",
+              "spacing": "md",
+              "contents": [
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "spacing": "sm",
+                  "contents": [
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🍞 早餐", "text": "早餐" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🍱 午餐", "text": "午餐" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🍜 晚餐", "text": "晚餐" } }
+                  ]
+                },
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "spacing": "sm",
+                  "contents": [
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "☕ 飲品", "text": "飲品" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🚌 交通", "text": "交通" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🛒 購物", "text": "購物" } }
+                  ]
+                },
+                {
+                  "type": "box",
+                  "layout": "horizontal",
+                  "spacing": "sm",
+                  "contents": [
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🎮 娛樂", "text": "娛樂" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "🏠 房租", "text": "房租" } },
+                    { "type": "button", "style": "secondary", "action": { "type": "message", "label": "✏️ 其他", "text": "其他" } }
+                  ]
+                }
+              ]
+            }
+          }
+        }]
+      });
+
+    // 🔥 【新增】處理按鈕點擊後的回覆邏輯
+    case '早餐':
+    case '午餐':
+    case '晚餐':
+    case '飲品':
+    case '交通':
+    case '購物':
+    case '娛樂':
+    case '房租':
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [{ 
+          type: 'text', 
+          text: `好的，你要記帳「${userMessage}」！\n請輸入金額完成記帳，格式如下：\n\n${userMessage} 150` 
+        }]
+      });
+      
+    case '其他':
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [{ 
+          type: 'text', 
+          text: `沒問題！請直接告訴我你要記什麼項目跟金額。\n\n格式：自訂項目 金額\n（例如：看電影 300）` 
+        }]
+      });
+
+    // --- 保留原本的其他圖文選單指令 ---
     case '大家來分帳':
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '準備呼叫分帳卡片！(Flex Message 建置中... 🛠️)' }] });
     case '看本月報表':
@@ -60,7 +143,7 @@ async function handleEvent(event) {
     case '使用說明':
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '歡迎使用理財小幫手！\n\n直接輸入「項目 金額」即可記帳。\n輸入「查帳」可看總花費。\n輸入「總表」可看最近 10 筆明細。' }] });
     
-    // 【保留你原本的資料庫指令】
+    // --- 保留你原本的資料庫指令 ---
     case '查帳':
       const results = await Expense.aggregate([
         { $match: { userId: userId } },
@@ -96,4 +179,4 @@ async function handleEvent(event) {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-console.log('強制更新拉！');
+console.log('Flex Message 更新拉！');
