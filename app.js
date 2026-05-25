@@ -1,3 +1,5 @@
+console.log('--- 檢查環境變數 ---');
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
 require('dotenv').config();
 const express = require('express');
 const line = require('@line/bot-sdk');
@@ -5,6 +7,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB 雲端金庫連線成功！'))
@@ -78,3 +81,4 @@ async function handleEvent(event) {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+console.log('強制更新拉！');
