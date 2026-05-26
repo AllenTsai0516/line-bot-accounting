@@ -99,7 +99,6 @@ async function handleEvent(event) {
             const people = parseInt(userMessage, 10);
             const perPerson = Math.ceil(state.amount / people); 
             const shareText = `嗨！我們剛剛的「${state.name}」分帳：一人 ${perPerson} 元喔！💸`;
-            // ✨ 已修正：移除了討人厭的 text=
             const shareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`;
             delete userState[userId];
             
@@ -163,7 +162,7 @@ async function handleEvent(event) {
       userState[userId] = { action: 'split', step: 1, name: '', amount: 0 };
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '🍻 進入分帳模式！\n\n請輸入聚會名稱：' }] });
 
-    // 🔥 超美外掛標籤甜甜圈圖 (修復跑偏版)
+    // 🔥 終極版報表：乾淨甜甜圈 + 右側整齊圖例 (完美解決資料懸殊跑版問題)
     case '看本月報表':
       const currentMonth = new Date().getMonth();
       const stats = await Expense.aggregate([
@@ -173,41 +172,41 @@ async function handleEvent(event) {
 
       if (stats.length === 0) return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: "本月還沒有記帳紀錄喔！" }] });
 
-      const labels = stats.map(s => s._id);
+      // 將項目與金額綁在一起作為圖例標籤
+      const labels = stats.map(s => `${s._id}: ${s.total}元`);
       const data = stats.map(s => s.total);
       const grandTotal = data.reduce((a, b) => a + b, 0);
 
       const chartConfig = {
-        type: 'outlabeledDoughnut',
+        type: 'doughnut', 
         data: {
           labels: labels,
           datasets: [{
             data: data,
-            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#82E0AA']
+            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#82E0AA'],
+            borderWidth: 2
           }]
         },
         options: {
-          layout: { padding: 80 }, // ✨ 已修正：加入 80px 的邊距防護罩
-          cutoutPercentage: 60,
+          cutoutPercentage: 65,
+          layout: { padding: 20 },
           plugins: {
-            legend: { display: false },
-            outlabels: {
-              text: '%l\n%v 元 (%p)',
-              color: 'white',
-              stretch: 15, // ✨ 已修正：縮短牽引線
-              font: { resizable: true, minSize: 12 }
+            legend: { 
+              position: 'right',
+              labels: { fontSize: 16, padding: 15 }
             },
+            datalabels: { display: false }, // 關掉會重疊的圓餅圖內嵌數字
             doughnutlabel: { 
               labels: [
-                { text: '總支出', font: { size: 16 } }, 
-                { text: `NT$ ${grandTotal}`, font: { size: 22, weight: 'bold' } }
+                { text: '總支出', font: { size: 18, color: '#555555' } }, 
+                { text: `NT$ ${grandTotal}`, font: { size: 24, weight: 'bold', color: '#111111' } }
               ] 
             }
           }
         }
       };
       
-      const chartUrl = `https://quickchart.io/chart?w=700&h=500&bkg=white&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
+      const chartUrl = `https://quickchart.io/chart?w=700&h=400&bkg=white&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
 
       return client.replyMessage({ replyToken: event.replyToken, messages: [
         { type: 'text', text: `📊 本月消費分析報告：\n總支出為：${grandTotal} 元。` },
