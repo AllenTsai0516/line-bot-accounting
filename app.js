@@ -116,7 +116,7 @@ async function handleEvent(event) {
         const remain = budgetAmount - myTotal;
 
         // 設定 Gemini 的人設跟提示詞
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `你是一個幽默、毒舌但又關心大學生理財的 AI 小幫手。該使用者這個月的總預算為 ${budgetAmount} 元，目前已經花了 ${myTotal} 元，只剩下 ${remain} 元。
         現在使用者對你說：「${userMessage}」。
         請根據他的剩餘金額，給予幽默、生動的建議。如果他快沒錢了想亂花，請狠狠吐槽他；如果錢還很多，可以給予推坑或理財建議。字數請控制在 100 字左右，語氣像朋友聊天，並直接給出回應。`;
