@@ -17,13 +17,12 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB 雲端金庫連線成功！'))
   .catch(err => console.error('❌ MongoDB 連線失敗：', err));
 
-// 建立支出資料庫模型
+// 建立支出與預算資料庫模型
 const expenseSchema = new mongoose.Schema({
   userId: String, item: String, amount: Number, date: { type: Date, default: Date.now }
 });
 const Expense = mongoose.model('Expense', expenseSchema);
 
-// 🔥 新增：建立預算資料庫模型
 const budgetSchema = new mongoose.Schema({ userId: String, amount: Number });
 const Budget = mongoose.model('Budget', budgetSchema);
 
@@ -92,11 +91,9 @@ async function handleEvent(event) {
           }
         }
     }
-    // 🔥 新增：設定預算狀態
     else if (state.action === 'setBudget') {
       if (!isNaN(userMessage)) {
         const amount = parseInt(userMessage, 10);
-        // 更新或新增使用者的預算
         await Budget.findOneAndUpdate({ userId: userId }, { amount: amount }, { upsert: true, new: true });
         delete userState[userId];
         return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `✅ 成功設定本月預算為 ${amount} 元！你要省點花啊！` }] });
@@ -104,10 +101,9 @@ async function handleEvent(event) {
         return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `⚠️ 請輸入「純數字」金額喔！` }] });
       }
     }
-    // 🔥 新增：呼叫 Gemini AI 狀態
+    // 🔥 AI 防剁手連續看診模式
     else if (state.action === 'askGemini') {
       try {
-        // 先幫 AI 算好使用者還剩多少錢
         const myBudget = await Budget.findOne({ userId: userId });
         const budgetAmount = myBudget ? myBudget.amount : 0;
         const currentMonth = new Date().getMonth();
@@ -115,8 +111,7 @@ async function handleEvent(event) {
         const myTotal = stats.length > 0 ? stats[0].total : 0;
         const remain = budgetAmount - myTotal;
 
-        // 設定 Gemini 的人設跟提示詞
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `你是一個幽默、毒舌但又關心大學生理財的 AI 小幫手。該使用者這個月的總預算為 ${budgetAmount} 元，目前已經花了 ${myTotal} 元，只剩下 ${remain} 元。
         現在使用者對你說：「${userMessage}」。
         請根據他的剩餘金額，給予幽默、生動的建議。如果他快沒錢了想亂花，請狠狠吐槽他；如果錢還很多，可以給予推坑或理財建議。字數請控制在 100 字左右，語氣像朋友聊天，並直接給出回應。`;
@@ -124,12 +119,16 @@ async function handleEvent(event) {
         const result = await model.generateContent(prompt);
         const text = result.response.text();
 
-        delete userState[userId];
-        return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `🤖 AI 防剁手顧問：\n\n${text}` }] });
+        return client.replyMessage({ 
+          replyToken: event.replyToken, 
+          messages: [{ type: 'text', text: `🤖 診斷結果：\n\n${text}\n\n💡 (你可以繼續問下一個想買的東西，或點擊下方選單離開診所)` }] 
+        });
       } catch (err) {
         console.error("Gemini API Error:", err);
-        delete userState[userId];
-        return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `🤖 AI 顧問現在腦袋卡卡的，請稍後再問我！` }] });
+        return client.replyMessage({ 
+          replyToken: event.replyToken, 
+          messages: [{ type: 'text', text: `🤖 剛剛連線有點塞車 (免費 API 的小脾氣)！請等個 3 秒鐘，再把你剛剛的問題傳一次看看！` }] 
+        });
       }
     }
   }
@@ -162,7 +161,6 @@ async function handleEvent(event) {
       const chartUrl = `https://quickchart.io/chart?w=700&h=400&bkg=white&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
       return client.replyMessage({ replyToken: event.replyToken, messages: [ { type: 'text', text: `📊 本月消費分析報告：\n總支出為：${grandTotal} 元。` }, { type: 'image', originalContentUrl: chartUrl, previewImageUrl: chartUrl } ]});
 
-    // 🔥 新增：生活預算選單
     case '設定生活費預算':
       return client.replyMessage({
         replyToken: event.replyToken,
@@ -197,17 +195,23 @@ async function handleEvent(event) {
       
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `🏦 【本月財務狀況】\n總預算：${myBudget.amount} 元\n已花費：${myTotal} 元\n👉 剩餘可用：${remain} 元` }] });
 
-    // 🔥 新增：呼叫 AI 防剁手
     case 'AI防剁手諮詢':
       userState[userId] = { action: 'askGemini' };
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '🤖 歡迎來到 AI 防剁手診所！\n\n告訴我你想買什麼？（例如：我好想買一雙 4000 塊的球鞋）\n我會幫你評估你這個月還能不能活下去！' }] });
 
     case '使用說明':
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '歡迎使用理財小幫手！\n直接點擊選單操作，讓 AI 管好你的錢包！' }] });
+
+    case '刪除最後一筆':
+      const lastEntry = await Expense.findOne({ userId: userId }).sort({ date: -1 });
+      if (!lastEntry) return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: "找不到記帳紀錄可以刪除喔！" }] });
+      
+      await Expense.findByIdAndDelete(lastEntry._id);
+      return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `🗑️ 已刪除最後一筆紀錄：\n「${lastEntry.item} ${lastEntry.amount} 元」` }] });
   }
 
   // ==========================================
-  // 階段 2 & 3：保留刪除與快速記帳功能
+  // 階段 2：處理「刪除 [特定項目/金額]」與「快速記帳」
   // ==========================================
   if (userMessage.startsWith('刪除 ')) {
     const targetStr = userMessage.replace('刪除 ', '').trim();
@@ -230,4 +234,3 @@ async function handleEvent(event) {
 }
 
 app.listen(port, () => { console.log(`Server running on port ${port}`); });
-console.log('AI 防剁手與預算系統完美上線！');
