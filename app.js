@@ -101,7 +101,7 @@ async function handleEvent(event) {
         return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: `⚠️ 請輸入「純數字」金額喔！` }] });
       }
     }
-    // 🔥 AI 防剁手連續看診模式
+    // 🔥 AI 防剁手連續看診模式 (已修正為 gemini-2.5-flash)
     else if (state.action === 'askGemini') {
       try {
         const myBudget = await Budget.findOne({ userId: userId });
@@ -111,7 +111,8 @@ async function handleEvent(event) {
         const myTotal = stats.length > 0 ? stats[0].total : 0;
         const remain = budgetAmount - myTotal;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // ✨ 這次絕對沒寫錯，最新版大腦植入！
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `你是一個幽默、毒舌但又關心大學生理財的 AI 小幫手。該使用者這個月的總預算為 ${budgetAmount} 元，目前已經花了 ${myTotal} 元，只剩下 ${remain} 元。
         現在使用者對你說：「${userMessage}」。
         請根據他的剩餘金額，給予幽默、生動的建議。如果他快沒錢了想亂花，請狠狠吐槽他；如果錢還很多，可以給予推坑或理財建議。字數請控制在 100 字左右，語氣像朋友聊天，並直接給出回應。`;
