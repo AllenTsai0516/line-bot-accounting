@@ -162,6 +162,7 @@ async function handleEvent(event) {
       userState[userId] = { action: 'split', step: 1, name: '', amount: 0 };
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '🍻 進入分帳模式！\n\n請輸入聚會名稱：' }] });
 
+    // 🔥 超美外掛標籤甜甜圈圖
     case '看本月報表':
       const currentMonth = new Date().getMonth();
       const stats = await Expense.aggregate([
@@ -176,11 +177,35 @@ async function handleEvent(event) {
       const grandTotal = data.reduce((a, b) => a + b, 0);
 
       const chartConfig = {
-        type: 'pie',
-        data: { labels: labels, datasets: [{ data: data }] },
-        options: { plugins: { datalabels: { display: true }, doughnutlabel: { labels: [{ text: grandTotal, font: { size: 20 } }, { text: 'Total' }] } } }
+        type: 'outlabeledDoughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#82E0AA']
+          }]
+        },
+        options: {
+          cutoutPercentage: 60,
+          plugins: {
+            legend: { display: false },
+            outlabels: {
+              text: '%l\n%v 元 (%p)',
+              color: 'white',
+              stretch: 35,
+              font: { resizable: true, minSize: 14 }
+            },
+            doughnutlabel: { 
+              labels: [
+                { text: '總支出', font: { size: 16 } }, 
+                { text: `NT$ ${grandTotal}`, font: { size: 22, weight: 'bold' } }
+              ] 
+            }
+          }
+        }
       };
-      const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
+      
+      const chartUrl = `https://quickchart.io/chart?w=700&h=500&bkg=white&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
 
       return client.replyMessage({ replyToken: event.replyToken, messages: [
         { type: 'text', text: `📊 本月消費分析報告：\n總支出為：${grandTotal} 元。` },
@@ -249,4 +274,4 @@ async function handleEvent(event) {
 }
 
 app.listen(port, () => { console.log(`Server running on port ${port}`); });
-console.log('期末專案完整版程式碼上線拉！');
+console.log('超美報表升級版上線拉！');
