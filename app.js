@@ -99,7 +99,8 @@ async function handleEvent(event) {
             const people = parseInt(userMessage, 10);
             const perPerson = Math.ceil(state.amount / people); 
             const shareText = `嗨！我們剛剛的「${state.name}」分帳：一人 ${perPerson} 元喔！💸`;
-            const shareUrl = `https://line.me/R/msg/text/?text=${encodeURIComponent(shareText)}`;
+            // ✨ 已修正：移除了討人厭的 text=
+            const shareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`;
             delete userState[userId];
             
             return client.replyMessage({ 
@@ -162,7 +163,7 @@ async function handleEvent(event) {
       userState[userId] = { action: 'split', step: 1, name: '', amount: 0 };
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '🍻 進入分帳模式！\n\n請輸入聚會名稱：' }] });
 
-    // 🔥 超美外掛標籤甜甜圈圖
+    // 🔥 超美外掛標籤甜甜圈圖 (修復跑偏版)
     case '看本月報表':
       const currentMonth = new Date().getMonth();
       const stats = await Expense.aggregate([
@@ -186,14 +187,15 @@ async function handleEvent(event) {
           }]
         },
         options: {
+          layout: { padding: 80 }, // ✨ 已修正：加入 80px 的邊距防護罩
           cutoutPercentage: 60,
           plugins: {
             legend: { display: false },
             outlabels: {
               text: '%l\n%v 元 (%p)',
               color: 'white',
-              stretch: 35,
-              font: { resizable: true, minSize: 14 }
+              stretch: 15, // ✨ 已修正：縮短牽引線
+              font: { resizable: true, minSize: 12 }
             },
             doughnutlabel: { 
               labels: [
@@ -274,4 +276,3 @@ async function handleEvent(event) {
 }
 
 app.listen(port, () => { console.log(`Server running on port ${port}`); });
-console.log('超美報表升級版上線拉！');
