@@ -201,8 +201,51 @@ async function handleEvent(event) {
       return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '🤖 歡迎來到 AI 防剁手診所！\n\n告訴我你想買什麼？（例如：我好想買一雙 4000 塊的球鞋）\n我會幫你評估你這個月還能不能活下去！' }] });
 
     case '使用說明':
-      return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: '歡迎使用理財小幫手！\n直接點擊選單操作，讓 AI 管好你的錢包！' }] });
-
+      return client.replyMessage({ 
+        replyToken: event.replyToken, 
+        messages: [{ 
+          type: 'flex', 
+          altText: '📖 理財小幫手使用秘笈', 
+          contents: {
+            "type": "bubble",
+            "size": "mega",
+            "header": {
+              "type": "box",
+              "layout": "vertical",
+              "backgroundColor": "#111111",
+              "paddingAll": "20px",
+              "contents": [
+                { "type": "text", "text": "📖 專屬金庫操作秘笈", "weight": "bold", "size": "xl", "color": "#F3B562" }
+              ]
+            },
+            "body": {
+              "type": "box",
+              "layout": "vertical",
+              "spacing": "md",
+              "contents": [
+                { "type": "text", "text": "想要在 35 歲前達成財富自由、把夢想中的 Urus 跑車開回上億豪宅，嚴格的金流控管就是第一步！", "wrap": true, "size": "sm", "color": "#888888", "weight": "bold" },
+                { "type": "separator", "margin": "lg" },
+                { "type": "box", "layout": "horizontal", "margin": "md", "contents": [ 
+                  { "type": "text", "text": "📝", "flex": 1, "size": "md" }, 
+                  { "type": "text", "text": "快速記帳：點擊選單，或直接輸入「早餐 50」。輸錯可打「刪除 早餐」即可復原。", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
+                ]},
+                { "type": "box", "layout": "horizontal", "contents": [ 
+                  { "type": "text", "text": "🍻", "flex": 1, "size": "md" }, 
+                  { "type": "text", "text": "分帳神器：聚會完點擊「大家來分帳」，跟著步驟按，一鍵產出請款結果。", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
+                ]},
+                { "type": "box", "layout": "horizontal", "contents": [ 
+                  { "type": "text", "text": "📊", "flex": 1, "size": "md" }, 
+                  { "type": "text", "text": "預算與報表：隨時掌控本月剩餘可用金額，並查看精美的消費圓餅圖。", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
+                ]},
+                { "type": "box", "layout": "horizontal", "contents": [ 
+                  { "type": "text", "text": "🤖", "flex": 1, "size": "md" }, 
+                  { "type": "text", "text": "AI 防剁手：忍不住想買 MFK 香水或質感單品？先來問問毒舌管家同不同意！", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
+                ]}
+              ]
+            }
+          }
+        }] 
+      });
     case '刪除最後一筆':
       const lastEntry = await Expense.findOne({ userId: userId }).sort({ date: -1 });
       if (!lastEntry) return client.replyMessage({ replyToken: event.replyToken, messages: [{ type: 'text', text: "找不到記帳紀錄可以刪除喔！" }] });
