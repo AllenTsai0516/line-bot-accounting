@@ -223,7 +223,7 @@ async function handleEvent(event) {
               "layout": "vertical",
               "spacing": "md",
               "contents": [
-                { "type": "text", "text": "想要在 35 歲前達成財富自由、把夢想中的 Urus 跑車開回上億豪宅，嚴格的金流控管就是第一步！", "wrap": true, "size": "sm", "color": "#888888", "weight": "bold" },
+                { "type": "text", "text": "想要提早達成財富自由、實現理想中的質感生活，嚴格的日常金流控管就是最重要的一步！", "wrap": true, "size": "sm", "color": "#888888", "weight": "bold" },
                 { "type": "separator", "margin": "lg" },
                 { "type": "box", "layout": "horizontal", "margin": "md", "contents": [ 
                   { "type": "text", "text": "📝", "flex": 1, "size": "md" }, 
@@ -239,7 +239,7 @@ async function handleEvent(event) {
                 ]},
                 { "type": "box", "layout": "horizontal", "contents": [ 
                   { "type": "text", "text": "🤖", "flex": 1, "size": "md" }, 
-                  { "type": "text", "text": "AI 防剁手：忍不住想買 MFK 香水或質感單品？先來問問毒舌管家同不同意！", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
+                  { "type": "text", "text": "AI 防剁手：忍不住想衝動購物？先把商品丟給 AI，看毒舌管家同不同意！", "flex": 6, "wrap": true, "size": "sm", "color": "#555555" } 
                 ]}
               ]
             }
